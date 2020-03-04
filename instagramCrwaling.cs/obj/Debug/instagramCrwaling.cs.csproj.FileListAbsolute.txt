@@ -1,0 +1,10 @@
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\bin\Debug\instagramCrwaling.cs.exe.config
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\bin\Debug\instagramCrwaling.cs.exe
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\bin\Debug\instagramCrwaling.cs.pdb
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\instagramCrwaling.cs.csprojAssemblyReference.cache
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\instagramCrwaling.cs.Form1.resources
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\instagramCrwaling.cs.Properties.Resources.resources
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\instagramCrwaling.cs.csproj.GenerateResource.cache
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\instagramCrwaling.cs.csproj.CoreCompileInputs.cache
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\instagramCrwaling.cs.exe
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\instagramCrwaling.cs.pdb
