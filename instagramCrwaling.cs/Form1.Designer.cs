@@ -29,7 +29,13 @@
         private void InitializeComponent()
         {
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.label18 = new System.Windows.Forms.Label();
+            this.label12 = new System.Windows.Forms.Label();
+            this.fileNameTextbox = new System.Windows.Forms.TextBox();
+            this.fileOpenButton = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.addMacroButton = new System.Windows.Forms.Button();
             this.tabControl1 = new System.Windows.Forms.TabControl();
@@ -42,14 +48,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.searchTextBox = new System.Windows.Forms.TextBox();
-            this.label6 = new System.Windows.Forms.Label();
             this.tabPage5 = new System.Windows.Forms.TabPage();
-            this.inputKeywordLabel = new System.Windows.Forms.Label();
-            this.inputKeywordTextBox = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
-            this.searchMethodSelectCombobox = new System.Windows.Forms.ComboBox();
-            this.tabPage6 = new System.Windows.Forms.TabPage();
             this.tabPage7 = new System.Windows.Forms.TabPage();
             this.label7 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -77,18 +76,18 @@
             this.reportTextBox = new System.Windows.Forms.TextBox();
             this.currentMacroLabel = new System.Windows.Forms.Label();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
-            this.fileOpenButton = new System.Windows.Forms.Button();
-            this.fileNameTextbox = new System.Windows.Forms.TextBox();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label18 = new System.Windows.Forms.Label();
+            this.label1 = new System.Windows.Forms.Label();
+            this.browserXSizeTextbox = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.browserYSizeTextbox = new System.Windows.Forms.TextBox();
+            this.browserSizeButton = new System.Windows.Forms.Button();
+            this.label4 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
-            this.tabPage4.SuspendLayout();
-            this.tabPage5.SuspendLayout();
             this.tabPage7.SuspendLayout();
             this.tabPage8.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -97,12 +96,28 @@
             // 
             // dataGridView1
             // 
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.Column1,
+            this.Column2});
             this.dataGridView1.Location = new System.Drawing.Point(6, 115);
             this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.dataGridView1.RowTemplate.Height = 23;
             this.dataGridView1.Size = new System.Drawing.Size(332, 317);
             this.dataGridView1.TabIndex = 0;
+            // 
+            // Column1
+            // 
+            this.Column1.HeaderText = "아이디";
+            this.Column1.Name = "Column1";
+            // 
+            // Column2
+            // 
+            this.Column2.HeaderText = "비밀번호";
+            this.Column2.Name = "Column2";
             // 
             // groupBox1
             // 
@@ -118,8 +133,50 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "아이디목록";
             // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Font = new System.Drawing.Font("Gulim", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label18.Location = new System.Drawing.Point(6, 100);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(283, 12);
+            this.label18.TabIndex = 4;
+            this.label18.Text = "텍스트파일 저장할 때 인코딩을 UTF-8로 할 것";
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Font = new System.Drawing.Font("Gulim", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label12.Location = new System.Drawing.Point(5, 45);
+            this.label12.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(196, 48);
+            this.label12.TabIndex = 3;
+            this.label12.Text = "메모장 형식\r\nex )\r\nID1(공백)PASSWORD1(다음줄)\r\nID2(공백)PASSWORD2(다음줄)";
+            // 
+            // fileNameTextbox
+            // 
+            this.fileNameTextbox.Font = new System.Drawing.Font("Gulim", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.fileNameTextbox.Location = new System.Drawing.Point(109, 19);
+            this.fileNameTextbox.Margin = new System.Windows.Forms.Padding(2);
+            this.fileNameTextbox.Name = "fileNameTextbox";
+            this.fileNameTextbox.Size = new System.Drawing.Size(229, 24);
+            this.fileNameTextbox.TabIndex = 2;
+            // 
+            // fileOpenButton
+            // 
+            this.fileOpenButton.Location = new System.Drawing.Point(6, 19);
+            this.fileOpenButton.Margin = new System.Windows.Forms.Padding(2);
+            this.fileOpenButton.Name = "fileOpenButton";
+            this.fileOpenButton.Size = new System.Drawing.Size(99, 23);
+            this.fileOpenButton.TabIndex = 1;
+            this.fileOpenButton.Text = "파일 열기";
+            this.fileOpenButton.UseVisualStyleBackColor = true;
+            this.fileOpenButton.Click += new System.EventHandler(this.fileOpenButton_Click);
+            // 
             // groupBox2
             // 
+            this.groupBox2.CausesValidation = false;
             this.groupBox2.Controls.Add(this.addMacroButton);
             this.groupBox2.Controls.Add(this.tabControl1);
             this.groupBox2.Location = new System.Drawing.Point(365, 28);
@@ -140,6 +197,7 @@
             this.addMacroButton.TabIndex = 0;
             this.addMacroButton.Text = "▶작업 목록 추가";
             this.addMacroButton.UseVisualStyleBackColor = true;
+            this.addMacroButton.Click += new System.EventHandler(this.addMacroButton_Click);
             // 
             // tabControl1
             // 
@@ -148,7 +206,6 @@
             this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Controls.Add(this.tabPage4);
             this.tabControl1.Controls.Add(this.tabPage5);
-            this.tabControl1.Controls.Add(this.tabPage6);
             this.tabControl1.Controls.Add(this.tabPage7);
             this.tabControl1.Controls.Add(this.tabPage8);
             this.tabControl1.Location = new System.Drawing.Point(11, 18);
@@ -174,24 +231,24 @@
             // radioButton2
             // 
             this.radioButton2.AutoSize = true;
-            this.radioButton2.Checked = true;
             this.radioButton2.Location = new System.Drawing.Point(387, 34);
             this.radioButton2.Margin = new System.Windows.Forms.Padding(2);
             this.radioButton2.Name = "radioButton2";
             this.radioButton2.Size = new System.Drawing.Size(89, 16);
             this.radioButton2.TabIndex = 1;
-            this.radioButton2.TabStop = true;
             this.radioButton2.Text = "Mobile 버전";
             this.radioButton2.UseVisualStyleBackColor = true;
             // 
             // radioButton1
             // 
             this.radioButton1.AutoSize = true;
+            this.radioButton1.Checked = true;
             this.radioButton1.Location = new System.Drawing.Point(47, 34);
             this.radioButton1.Margin = new System.Windows.Forms.Padding(2);
             this.radioButton1.Name = "radioButton1";
             this.radioButton1.Size = new System.Drawing.Size(68, 16);
             this.radioButton1.TabIndex = 0;
+            this.radioButton1.TabStop = true;
             this.radioButton1.Text = "PC 버전";
             this.radioButton1.UseVisualStyleBackColor = true;
             // 
@@ -252,97 +309,22 @@
             // tabPage4
             // 
             this.tabPage4.BackColor = System.Drawing.Color.LightSteelBlue;
-            this.tabPage4.Controls.Add(this.searchTextBox);
-            this.tabPage4.Controls.Add(this.label6);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Size = new System.Drawing.Size(691, 84);
             this.tabPage4.TabIndex = 3;
-            this.tabPage4.Text = "검색";
-            // 
-            // searchTextBox
-            // 
-            this.searchTextBox.Location = new System.Drawing.Point(142, 33);
-            this.searchTextBox.Name = "searchTextBox";
-            this.searchTextBox.Size = new System.Drawing.Size(292, 21);
-            this.searchTextBox.TabIndex = 1;
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(26, 35);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(105, 12);
-            this.label6.TabIndex = 0;
-            this.label6.Text = "검색창에 쓸 내용 :";
+            this.tabPage4.Text = "로그인";
             // 
             // tabPage5
             // 
             this.tabPage5.BackColor = System.Drawing.Color.LightSteelBlue;
-            this.tabPage5.Controls.Add(this.inputKeywordLabel);
-            this.tabPage5.Controls.Add(this.inputKeywordTextBox);
-            this.tabPage5.Controls.Add(this.label4);
-            this.tabPage5.Controls.Add(this.searchMethodSelectCombobox);
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Size = new System.Drawing.Size(691, 84);
             this.tabPage5.TabIndex = 4;
-            this.tabPage5.Text = "게시글or버튼클릭";
-            // 
-            // inputKeywordLabel
-            // 
-            this.inputKeywordLabel.AutoSize = true;
-            this.inputKeywordLabel.Location = new System.Drawing.Point(283, 21);
-            this.inputKeywordLabel.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.inputKeywordLabel.Name = "inputKeywordLabel";
-            this.inputKeywordLabel.Size = new System.Drawing.Size(38, 12);
-            this.inputKeywordLabel.TabIndex = 3;
-            this.inputKeywordLabel.Text = "label5";
-            this.inputKeywordLabel.Visible = false;
-            // 
-            // inputKeywordTextBox
-            // 
-            this.inputKeywordTextBox.Location = new System.Drawing.Point(285, 35);
-            this.inputKeywordTextBox.Margin = new System.Windows.Forms.Padding(2);
-            this.inputKeywordTextBox.Multiline = true;
-            this.inputKeywordTextBox.Name = "inputKeywordTextBox";
-            this.inputKeywordTextBox.Size = new System.Drawing.Size(287, 20);
-            this.inputKeywordTextBox.TabIndex = 2;
-            this.inputKeywordTextBox.Visible = false;
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(18, 21);
-            this.label4.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(81, 12);
-            this.label4.TabIndex = 0;
-            this.label4.Text = "검색방식 선택";
-            // 
-            // searchMethodSelectCombobox
-            // 
-            this.searchMethodSelectCombobox.FormattingEnabled = true;
-            this.searchMethodSelectCombobox.Items.AddRange(new object[] {
-            "키워드로 입력",
-            "링크로 입력 (href)"});
-            this.searchMethodSelectCombobox.Location = new System.Drawing.Point(20, 35);
-            this.searchMethodSelectCombobox.Margin = new System.Windows.Forms.Padding(2);
-            this.searchMethodSelectCombobox.Name = "searchMethodSelectCombobox";
-            this.searchMethodSelectCombobox.Size = new System.Drawing.Size(240, 20);
-            this.searchMethodSelectCombobox.TabIndex = 1;
-            // 
-            // tabPage6
-            // 
-            this.tabPage6.BackColor = System.Drawing.Color.LightSteelBlue;
-            this.tabPage6.Location = new System.Drawing.Point(4, 22);
-            this.tabPage6.Margin = new System.Windows.Forms.Padding(2);
-            this.tabPage6.Name = "tabPage6";
-            this.tabPage6.Size = new System.Drawing.Size(691, 84);
-            this.tabPage6.TabIndex = 5;
-            this.tabPage6.Text = "랜덤검색";
+            this.tabPage5.Text = "로그인 버튼 클릭";
             // 
             // tabPage7
             // 
@@ -437,6 +419,7 @@
             this.mouseDetectStopButton.TabIndex = 8;
             this.mouseDetectStopButton.Text = "좌표감지종료";
             this.mouseDetectStopButton.UseVisualStyleBackColor = true;
+            this.mouseDetectStopButton.Click += new System.EventHandler(this.mouseDetectStop);
             // 
             // mouseDetectStartButton
             // 
@@ -446,6 +429,7 @@
             this.mouseDetectStartButton.TabIndex = 7;
             this.mouseDetectStartButton.Text = "좌표감지시작";
             this.mouseDetectStartButton.UseVisualStyleBackColor = true;
+            this.mouseDetectStartButton.Click += new System.EventHandler(this.mouseDetectStart);
             // 
             // mouseEventComboBox
             // 
@@ -555,6 +539,7 @@
             this.macroListClearButton.TabIndex = 1;
             this.macroListClearButton.Text = "작업 초기화";
             this.macroListClearButton.UseVisualStyleBackColor = true;
+            this.macroListClearButton.Click += new System.EventHandler(this.macroListClearButton_Click);
             // 
             // macroListTextBox
             // 
@@ -565,6 +550,8 @@
             this.macroListTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             this.macroListTextBox.Size = new System.Drawing.Size(700, 102);
             this.macroListTextBox.TabIndex = 0;
+            this.macroListTextBox.Text = "▶1.이동=https://www.instagram.com/jobdrives/\r\n▶5.체류시간추가=3~10\r\n▶4.로그인버튼클릭=\r\n▶5.체류시간추" +
+    "가=3~10\r\n▶3.로그인명령=\r\n▶5.체류시간추가=3~10\r\n▶6.마우스이벤트=왼쪽버튼 클릭:(371,204)\r\n▶5.체류시간추가=3~10";
             // 
             // groupBox4
             // 
@@ -590,6 +577,7 @@
             this.processStopButton.TabIndex = 2;
             this.processStopButton.Text = "작업중단";
             this.processStopButton.UseVisualStyleBackColor = true;
+            this.processStopButton.Click += new System.EventHandler(this.processStopButton_Click);
             // 
             // processStartButton
             // 
@@ -600,6 +588,7 @@
             this.processStartButton.TabIndex = 1;
             this.processStartButton.Text = "작업시작";
             this.processStartButton.UseVisualStyleBackColor = true;
+            this.processStartButton.Click += new System.EventHandler(this.processStartButton_Click);
             // 
             // reportTextBox
             // 
@@ -635,52 +624,75 @@
             this.progressBar1.Style = System.Windows.Forms.ProgressBarStyle.Marquee;
             this.progressBar1.TabIndex = 6;
             // 
-            // fileOpenButton
+            // label1
             // 
-            this.fileOpenButton.Location = new System.Drawing.Point(6, 19);
-            this.fileOpenButton.Margin = new System.Windows.Forms.Padding(2);
-            this.fileOpenButton.Name = "fileOpenButton";
-            this.fileOpenButton.Size = new System.Drawing.Size(99, 23);
-            this.fileOpenButton.TabIndex = 1;
-            this.fileOpenButton.Text = "파일 열기";
-            this.fileOpenButton.UseVisualStyleBackColor = true;
-            this.fileOpenButton.Click += new System.EventHandler(this.fileOpenButton_Click);
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(506, 14);
+            this.label1.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(117, 12);
+            this.label1.TabIndex = 7;
+            this.label1.Text = "브라우저 크기 설정 :";
             // 
-            // fileNameTextbox
+            // browserXSizeTextbox
             // 
-            this.fileNameTextbox.Font = new System.Drawing.Font("Gulim", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.fileNameTextbox.Location = new System.Drawing.Point(109, 19);
-            this.fileNameTextbox.Margin = new System.Windows.Forms.Padding(2);
-            this.fileNameTextbox.Name = "fileNameTextbox";
-            this.fileNameTextbox.Size = new System.Drawing.Size(229, 24);
-            this.fileNameTextbox.TabIndex = 2;
+            this.browserXSizeTextbox.Location = new System.Drawing.Point(627, 9);
+            this.browserXSizeTextbox.Margin = new System.Windows.Forms.Padding(2);
+            this.browserXSizeTextbox.Name = "browserXSizeTextbox";
+            this.browserXSizeTextbox.Size = new System.Drawing.Size(46, 21);
+            this.browserXSizeTextbox.TabIndex = 7;
+            this.browserXSizeTextbox.Text = "800";
             // 
-            // label12
+            // label5
             // 
-            this.label12.AutoSize = true;
-            this.label12.Font = new System.Drawing.Font("Gulim", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label12.Location = new System.Drawing.Point(5, 45);
-            this.label12.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(196, 48);
-            this.label12.TabIndex = 3;
-            this.label12.Text = "메모장 형식\r\nex )\r\nID1(공백)PASSWORD1(다음줄)\r\nID2(공백)PASSWORD2(다음줄)";
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(677, 12);
+            this.label5.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(13, 12);
+            this.label5.TabIndex = 9;
+            this.label5.Text = "X";
             // 
-            // label18
+            // browserYSizeTextbox
             // 
-            this.label18.AutoSize = true;
-            this.label18.Font = new System.Drawing.Font("Gulim", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label18.Location = new System.Drawing.Point(6, 100);
-            this.label18.Name = "label18";
-            this.label18.Size = new System.Drawing.Size(283, 12);
-            this.label18.TabIndex = 4;
-            this.label18.Text = "텍스트파일 저장할 때 인코딩을 UTF-8로 할 것";
+            this.browserYSizeTextbox.Location = new System.Drawing.Point(694, 9);
+            this.browserYSizeTextbox.Margin = new System.Windows.Forms.Padding(2);
+            this.browserYSizeTextbox.Name = "browserYSizeTextbox";
+            this.browserYSizeTextbox.Size = new System.Drawing.Size(46, 21);
+            this.browserYSizeTextbox.TabIndex = 10;
+            this.browserYSizeTextbox.Text = "600";
+            // 
+            // browserSizeButton
+            // 
+            this.browserSizeButton.Location = new System.Drawing.Point(744, 8);
+            this.browserSizeButton.Margin = new System.Windows.Forms.Padding(2);
+            this.browserSizeButton.Name = "browserSizeButton";
+            this.browserSizeButton.Size = new System.Drawing.Size(58, 22);
+            this.browserSizeButton.TabIndex = 11;
+            this.browserSizeButton.Text = "적용";
+            this.browserSizeButton.UseVisualStyleBackColor = true;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Font = new System.Drawing.Font("Gulim", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.label4.Location = new System.Drawing.Point(908, 420);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(284, 26);
+            this.label4.TabIndex = 3;
+            this.label4.Text = "작업시작전에 꼭 파일 등록해놓고 실행할 것\r\n\r\n";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1205, 479);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.label5);
+            this.Controls.Add(this.browserYSizeTextbox);
+            this.Controls.Add(this.browserSizeButton);
+            this.Controls.Add(this.browserXSizeTextbox);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.currentMacroLabel);
             this.Controls.Add(this.groupBox4);
@@ -698,10 +710,6 @@
             this.tabPage1.PerformLayout();
             this.tabPage2.ResumeLayout(false);
             this.tabPage2.PerformLayout();
-            this.tabPage4.ResumeLayout(false);
-            this.tabPage4.PerformLayout();
-            this.tabPage5.ResumeLayout(false);
-            this.tabPage5.PerformLayout();
             this.tabPage7.ResumeLayout(false);
             this.tabPage7.PerformLayout();
             this.tabPage8.ResumeLayout(false);
@@ -731,14 +739,7 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.TabPage tabPage4;
-        private System.Windows.Forms.TextBox searchTextBox;
-        private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TabPage tabPage5;
-        private System.Windows.Forms.Label inputKeywordLabel;
-        private System.Windows.Forms.TextBox inputKeywordTextBox;
-        private System.Windows.Forms.Label label4;
-        private System.Windows.Forms.ComboBox searchMethodSelectCombobox;
-        private System.Windows.Forms.TabPage tabPage6;
         private System.Windows.Forms.TabPage tabPage7;
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label3;
@@ -770,6 +771,14 @@
         private System.Windows.Forms.Label label12;
         private System.Windows.Forms.TextBox fileNameTextbox;
         private System.Windows.Forms.Button fileOpenButton;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column2;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox browserXSizeTextbox;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.TextBox browserYSizeTextbox;
+        private System.Windows.Forms.Button browserSizeButton;
+        private System.Windows.Forms.Label label4;
     }
 }
 

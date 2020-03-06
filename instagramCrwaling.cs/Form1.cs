@@ -1,11 +1,21 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using log4net;
+using mshtml;
+using SHDocVw;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -13,10 +23,442 @@ namespace instagramCrwaling.cs
 {
     public partial class Form1 : Form
     {
+
+        #region user32dll import
+        const int KEYEVENTF_KEYDOWN = 0x00;
+        const int KEYEVENTF_KEYUP = 0x02;
+
+        [DllImport("user32.dll")]
+        static extern IntPtr SetFocus(IntPtr handle);
+
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("User32.dll")]
+        static extern void keybd_event(byte vk, byte scan, int flags, int extra);
+
+        [Flags]
+        public enum KeyFlag
+        {
+            /// <summary>
+            /// 키 누름
+            /// </summary>
+            KE_DOWN = 0,
+            /// <summary>
+            /// 확장 키
+            /// </summary>
+            KE__EXTENDEDKEY = 1,
+            /// <summary>
+            /// 키 뗌
+            /// </summary>
+            KE_UP = 2
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
+
+        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
+        private const int MOUSEEVENTF_LEFTUP = 0x04;
+        private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
+        private const int MOUSEEVENTF_RIGHTUP = 0x10;
+        #endregion
+
+        #region 일반 변수 선언
+        InternetExplorer ie = null;
+        SHDocVw.WebBrowser webBrowser = null;
+        HtmlAgilityPack.HtmlDocument document;
+        HtmlNodeCollection nodes;
+
+        int indexNum = 0;
+        int macroListTextboxCursor = 0;
+        int nextRowIndex = 0;
+        string indexString = String.Empty;
+        string checkString = String.Empty;
+        string macroString = String.Empty;
+        string macroList = String.Empty;
+        string prevUrl = String.Empty;
+
+        private Stopwatch totalsw = null;
+        Microsoft.Win32.RegistryKey rk = null;
+        System.Timers.Timer mouseDetectTimer = null; //좌표 감지에 쓰이는 타이머
+        Random random = null;
+        Thread workerThread = null;
+        Thread aa = null;
+        private ILog log = LogManager.GetLogger("Program");
+        BackgroundWorker worker = null;
+
+        #endregion
+
+        #region 변수 재활용
+        private Stopwatch setTotalSw()
+        {
+            if (totalsw == null)
+                totalsw = new Stopwatch();
+            totalsw.Reset();
+            return totalsw;
+        }
+        private Random setRandomInstance()
+        {
+            if (random == null)
+                random = new Random(Guid.NewGuid().GetHashCode());
+            return random;
+        }
+        private System.Timers.Timer setTimer()
+        {
+            if (mouseDetectTimer == null)
+                mouseDetectTimer = new System.Timers.Timer();
+            return mouseDetectTimer;
+        }
+        #endregion
+
+        #region 마우스 클릭 이벤트
+        public void LeftDoubleClick(string xpos, string ypos)
+        {
+            Console.WriteLine("xpos :" + xpos + "  ypos: " + ypos);
+            Cursor.Position = new Point(int.Parse(xpos), int.Parse(ypos));
+
+            mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+            Thread.Sleep(150);
+            mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+
+            Console.Write("leftmousedoubleclick success");
+
+        }
+
+        public void LeftOneClick(string xpos, string ypos)
+        {
+            Cursor.Position = new Point(int.Parse(xpos), int.Parse(ypos));
+            mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+
+        }
+        #endregion
+
+        #region 체류시간 설정
+        private void sleep(int s, int e)
+        {
+            random = setRandomInstance();
+            int randomSecond = random.Next(s, e);
+            Thread.Sleep(randomSecond * 1000);
+            return;
+        }
+        #endregion
+
+        //마지막 탭으로 ie 변경
+        private void changeIeTab()
+        {
+            // Console.WriteLine("changeIeTab 시작");
+            log.Debug("changeIeTab Start");
+            ShellWindows allBrowsers = new ShellWindows();
+            for (int i = allBrowsers.Count - 1; i >= 0; i--)
+            {
+                if (allBrowsers.Item(i) != null && !string.IsNullOrEmpty(((SHDocVw.InternetExplorer)allBrowsers.Item(i)).LocationURL))
+                {
+                    ie = (InternetExplorer)allBrowsers.Item(i);
+                    webBrowser = (SHDocVw.WebBrowser)ie;
+                    ie.Wait();
+                    //   Console.WriteLine("changeIeTab 끝");
+                    log.Debug("changeIeTab End");
+                    return;
+                }
+            }
+            log.Debug("changeIeTab 반환없이 End");
+        }
+
+
         public Form1()
         {
             InitializeComponent();
+            deleteAllIeProcesses();
+
         }
+
+        public int getRandomIndex(int elementsLength)
+        {
+            random = setRandomInstance();
+            int randomIndex = random.Next(0, elementsLength);
+            return randomIndex;
+        }
+
+        #region BackgroundWorker event define
+
+        bool checkRegex(string checkString, string pattern)
+        {
+            return Regex.IsMatch(checkString, pattern);
+        }
+
+        void bw_DoWork(List<string> splitMacroList, int macroListLength, DoWorkEventArgs e)
+        {
+          
+            rk =
+          Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings\5.0\User Agent", true);
+            if (radioButton2.Checked == true)
+            {
+                //"Mozilla/5.0 (Linux; Android 10.0.0; SGH-i907) AppleWebKit/664.76 (KHTML, like Gecko) Chrome/87.0.3131.15 Mobile Safari/664.76 
+                //"Mozilla /5.0(Linux; U; Android 7.0.0; SGH-i907) AppleWebKit / 533.1(KHTML, like Gecko) Version / 4.0 Mobile Safari/ 533.1 Chrome/87.0.3131.15"
+                rk.SetValue(null, "Mozilla/5.0 (Linux; Android 10.0.0; SGH-i907) AppleWebKit/664.76 (KHTML, like Gecko) Chrome/87.0.3131.15 Mobile Safari/664.76");
+                if (rk != null)
+                {
+                    log.Debug("레지스트리 수정 완료");
+
+                };
+            }
+            else
+                rk.SetValue(null, "");
+
+            while (true)
+
+            {
+                if (nextRowIndex == dataGridView1.RowCount)
+                {
+                    worker.CancelAsync();
+                }
+                totalsw = setTotalSw();
+                totalsw.Start();
+
+                log.Debug("\n\n\n매크로 작업목록 출력");
+                foreach (string temp in splitMacroList)
+                {
+                    log.Debug(temp);
+                }
+                log.Debug("----------------------------------------------------\n\n");
+
+                for (int i = 0; i < macroListLength; i++)
+                {
+                    //취소버튼 클릭시
+                    if (worker.CancellationPending)
+                    {
+                        e.Cancel = true;
+                        totalsw.Stop();
+                        return;
+                    }
+
+
+                    macroString = splitMacroList[i].Trim().Substring(1); //특수문자 제거
+                    printCurrentMacro(macroString, i); //현재 명령을 라벨에 출력
+
+                    indexNum = macroString[0] - '0';
+                    indexString = macroString.Substring(macroString.IndexOf(".") + 1, macroString.IndexOf("=") - (macroString.IndexOf(".") + 1));
+
+                    string pattern = @"^" + indexNum.ToString() + @"." + Regex.Escape(indexString) + @"$";
+                    checkString = macroString.Substring(0, macroString.IndexOf("=")); //0.이동
+
+                    //dot pattern 때문에 고생함
+                    if (checkRegex(checkString, pattern))
+                    {
+                        log.Debug("현재 반복문 넘버 : " + i + " , 작업 이름: " + macroString);
+                        try
+                        {
+
+                            switch (indexNum)
+                            {
+                                case 0:
+                                    //접속방식 : pc버전 / mobile버전
+
+                                    break;
+                                case 1:
+                                    //url 접속 또는 이동
+                                    string url = checkUrl(macroString.Substring(macroString.IndexOf("=") + 1));
+                                    makeIeProcess(url);
+                                    break;
+
+                                case 2:
+                                    //검색 기록 삭제
+                                    clearHistory();
+                                    break;
+
+                                case 3:
+                                    //로그인
+                                    loginMethod();
+                                    nextRowIndex++;
+                                   
+                                    break;
+
+                                case 4:
+                                    //로그인버튼클릭
+                                    loginButtonClick();
+
+                                    changeIeTab();
+                                    break;
+                                case 5:
+                                    //체류시간추가=30~50
+                                    string st = macroString.Substring(macroString.IndexOf("=") + 1, macroString.IndexOf("~") - (macroString.IndexOf("=") + 1));
+                                    int start_time = Int32.Parse(st);
+
+                                    string et = macroString.Substring(macroString.IndexOf("~") + 1, (macroString.Length - 1) - macroString.IndexOf("~"));
+                                    int end_time = Int32.Parse(et);
+
+                                    sleep(start_time, end_time);
+                                    break;
+                                case 6:
+                                    //마우스이벤트=왼쪽버튼 (더블)클릭:(100,300)
+                                    string leftOrRight = macroString.Substring(macroString.IndexOf("=") + 1, macroString.IndexOf(" ") - (macroString.IndexOf("=") + 1));
+
+                                    string clickOrDoubleClick = macroString.Substring(macroString.IndexOf(" ") + 1, macroString.IndexOf(":") - (macroString.IndexOf(" ") + 1));
+
+                                    string xpos = macroString.Substring(macroString.IndexOf("(") + 1, macroString.IndexOf(",") - (macroString.IndexOf("(") + 1));
+                                    string ypos = macroString.Substring(macroString.IndexOf(",") + 1, macroString.IndexOf(")") - (macroString.IndexOf(",") + 1));
+
+                                    if (clickOrDoubleClick.StartsWith("더블"))
+                                    {
+                                        LeftDoubleClick(xpos, ypos);
+                                    }
+                                    else
+                                    {
+                                        LeftOneClick(xpos, ypos);
+                                    }
+                                    break;
+                              
+                                default:
+                                    Console.WriteLine("매크로형식이 맞지 않음");
+                                    break;
+                            }
+
+                            //switch문 종료
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                            log.Debug(ex);
+                        }
+                        finally
+                        {
+                            endCurrentMacro(macroString, i);
+                        }
+                    }
+                    else
+                    {
+                        //regex가 맞지 않을때
+                        //작업명령 format이 이상함.
+                        continue;
+                    }
+
+
+                }
+                splitInfiniteLoop(); // while문 반복마다 한번씩 실행됨 
+                //deleteAllTab();
+                ie = null;
+                deleteAllIeProcesses();
+                totalsw.Stop();
+  
+            }
+        }
+
+        void bw_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            progressBar1.MarqueeAnimationSpeed = 0;
+            progressBar1.Style = ProgressBarStyle.Blocks;
+            progressBar1.Value = progressBar1.Minimum;
+
+            reportTextBox.Text += endAllMacro(ref totalsw);
+
+            reportTextBox.SelectionStart = reportTextBox.TextLength;
+            reportTextBox.ScrollToCaret();
+
+            currentMacroLabel.Text = "현재 진행 명령 : 작업이 중단되었습니다.";
+
+            processStartButton.Enabled = true;
+            processStopButton.Enabled = true;
+            if (e.Error != null)
+            {
+                reportTextBox.Text += "에러가 발생해서 작업이 중단되었습니다." + Environment.NewLine;
+            }
+            reportTextBox.Text += "작업을 중단했습니다." + Environment.NewLine;
+            worker = null;
+            deleteAllIeProcesses();
+
+            ie = null;
+            if (rk != null)
+                rk.SetValue(null, "");
+            
+            //예외처리 필요?
+
+
+        }
+        #endregion
+
+        /*
+         * 
+         * ▶1.이동=instagram.com/wonjjong93
+▶6.체류시간추가=3~10
+▶4.키워드검색=로그인
+▶6.체류시간추가=3~10
+▶3로그인명령=
+▶6.체류시간추가=3~10
+
+         * */
+         public void loginButtonClick()
+        {
+            mshtml.HTMLDocument dd = ie.Document;
+            var buttons = dd.getElementsByTagName("button");
+            foreach(IHTMLElement button in buttons )
+            {
+                string buttonInnerHtml = button.innerText;
+                if (buttonInnerHtml != null) Console.WriteLine(buttonInnerHtml);
+                if (buttonInnerHtml != null && buttonInnerHtml.Equals("로그인"))
+                {
+                    Console.WriteLine("로그인");
+                    button.click();
+                    return;
+                }
+            }
+        }
+        public void loginMethod()
+        {
+       
+            dataGridView1.ClearSelection();
+           
+            dataGridView1.Rows[nextRowIndex].Selected = true;
+            
+            string id = dataGridView1.SelectedRows[0].Cells[0].Value.ToString();
+            string pw = dataGridView1.SelectedRows[0].Cells[1].Value.ToString();
+            
+            inputId(id);
+            inputPassword(pw);
+            
+            mshtml.HTMLDocument dd = ie.Document;
+            var divs = dd.getElementsByTagName("div");
+            foreach(IHTMLElement div in divs)
+            {
+                string divInnterHtml = div.innerText;
+                if(divInnterHtml!=null && divInnterHtml.Equals("로그인"))
+                {
+                    Console.WriteLine("로그인");
+                    div.click();
+                    return; 
+                }
+            }
+           
+        }
+
+        public void deleteAllIeProcesses()
+        {
+            Process[] IeProcesses = Process.GetProcessesByName("iexplore");
+            foreach (var IeProcess in IeProcesses)
+            {
+                IeProcess.Kill();
+
+            }
+        }
+      
+        void findByKeyword(string keyword)
+        {
+            mshtml.HTMLDocument dd = ie.Document;
+            var buttons = dd.getElementsByTagName("button");
+            foreach (IHTMLElement button in buttons)
+            {
+                string buttonInnerHtml = button.innerText;
+                if (buttonInnerHtml != null) Console.WriteLine(buttonInnerHtml);
+                if (buttonInnerHtml != null && buttonInnerHtml.Equals("로그인"))
+                {
+                    Console.WriteLine("로그인");
+                    button.click();
+                    return;
+                }
+            }
+        }
+
+
+        #region 파일 관련 method
 
         void checkFileName(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -28,8 +470,10 @@ namespace instagramCrwaling.cs
                 return;
             }
         }
+
         private void fileOpenButton_Click(object sender, EventArgs e)
         {
+            
             string fileName = string.Empty;
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.DefaultExt = "txt";
@@ -40,33 +484,524 @@ namespace instagramCrwaling.cs
             //set initial screen as desktop
             string initial_path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             fileDialog.InitialDirectory = initial_path;
-            
+
             if (fileDialog.ShowDialog() == DialogResult.OK)
             {
                 fileName = fileDialog.FileName;
                 fileNameTextbox.Text = fileName;
 
-                System.IO.StreamReader file = new System.IO.StreamReader("yourfile.txt");
-                string[] columnnames = file.ReadLine().Split(' ');
-                DataTable dt = new DataTable();
-                foreach (string c in columnnames)
+                string[] allLine = File.ReadAllLines(@fileName);
+                int length = allLine.Length;
+                int rowCount = 0;
+                Console.WriteLine(length);
+              
+                dataGridView1.RowCount = length;
+
+                foreach (string line in allLine)
                 {
-                    dt.Columns.Add(c);
-                }
-                string newline;
-                while ((newline = file.ReadLine()) != null)
-                {
-                    DataRow dr = dt.NewRow();
-                    string[] values = newline.Split(' ');
-                    for (int i = 0; i < values.Length; i++)
+                    try
                     {
-                        dr[i] = values[i];
+                        dataGridView1.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+                        dataGridView1.RowHeadersVisible = false;
+                        dataGridView1.Rows[rowCount].Cells[0].Value = line.Substring(0, line.IndexOf(" "));
+                        dataGridView1.Rows[rowCount].Cells[1].Value = line.Substring(line.IndexOf(" ") + 1, line.Length - (line.IndexOf(" ") + 1));
+                        rowCount++;
                     }
-                    dt.Rows.Add(dr);
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
                 }
-                file.Close();
-                dataGridView1.DataSource = dt;
+                nextRowIndex = 0;
+                Console.WriteLine(dataGridView1.RowCount);
+            
+            //    Console.WriteLine(dataGridView1.CurrentRow.Cells[0].Value.ToString());
+           //     Console.WriteLine(dataGridView1.CurrentRow.Cells[1].Value.ToString());
+
+                // dataGridView1.ClearSelection();
+                // dataGridView1.Rows[2].Selected = true;
+
+            }
+
+        }
+        #endregion
+
+
+        private void inputId(string idString)
+        {
+          
+            mshtml.HTMLDocument dd = ie.Document;
+            var inputs = dd.getElementsByTagName("input");
+            foreach(IHTMLElement input in inputs)
+            {
+                string inputName = input.getAttribute("name");
+                if (inputName != null) Console.WriteLine(inputName);
+                if(!string.IsNullOrEmpty(inputName) && inputName.Equals("username"))
+                {
+                    ((IHTMLElement2)input).focus();
+                    Console.WriteLine("dd");
+                    break;
+                }
+            }
+            inputString(idString);
+            Thread.Sleep(1000);
+            Console.WriteLine("inputID complete");
+        }
+        private void inputPassword(string pwString)
+        {
+            mshtml.HTMLDocument dd = ie.Document;
+            var inputs = dd.getElementsByTagName("input");
+            foreach (IHTMLElement input in inputs)
+            {
+                string inputName = input.getAttribute("name");
+                if (!string.IsNullOrEmpty(inputName) && inputName.Equals("password"))
+                {
+                    ((IHTMLElement2)input).focus();
+                    break;
+                }
+            }
+            inputString(pwString);
+        }
+
+        private void inputString(string inputString)
+        {
+            char[] idChars = inputString.ToCharArray();
+            SetForegroundWindow((IntPtr)ie.HWND);
+
+            foreach (char idChar in idChars)
+            {
+                if (idChar >= 'a' && idChar <= 'z')
+                {
+                    keybd_event((byte)(char.ToUpper(idChar)), 0, 0x00, 0);
+                    keybd_event((byte)(char.ToUpper(idChar)), 0, 0x02, 0);
+
+                }
+                else if (idChar >= 'A' && idChar <= 'Z')
+                {
+                    keybd_event((int)Keys.LShiftKey, 0x00, 0x00, 0);
+
+                    keybd_event((byte)(char.ToUpper(idChar)), 0, 0x00, 0);
+                    keybd_event((byte)(char.ToUpper(idChar)), 0, 0x02, 0);
+
+                    keybd_event((int)Keys.LShiftKey, 0x00, 0x02, 0);
+                }
+                else
+                {
+                    int nValue = 0;
+                    bool bShift = false;
+                    switch (idChar)
+                    {
+                        case '~': bShift = true; nValue = (int)Keys.Oemtilde; break;
+                        case '_': bShift = true; nValue = (int)Keys.OemMinus; break;
+                        case '+': bShift = true; nValue = (int)Keys.Oemplus; break;
+                        case '{': bShift = true; nValue = (int)Keys.OemOpenBrackets; break;
+                        case '}': bShift = true; nValue = (int)Keys.OemCloseBrackets; break;
+                        case '|': bShift = true; nValue = (int)Keys.OemPipe; break;
+                        case ':': bShift = true; nValue = (int)Keys.OemSemicolon; break;
+                        case '"': bShift = true; nValue = (int)Keys.OemQuotes; break;
+                        case '<': bShift = true; nValue = (int)Keys.Oemcomma; break;
+                        case '>': bShift = true; nValue = (int)Keys.OemPeriod; break;
+                        case '?': bShift = true; nValue = (int)Keys.OemQuestion; break;
+
+                        case '!': bShift = true; nValue = (int)Keys.D1; break;
+                        case '@': bShift = true; nValue = (int)Keys.D2; break;
+                        case '#': bShift = true; nValue = (int)Keys.D3; break;
+                        case '$': bShift = true; nValue = (int)Keys.D4; break;
+                        case '%': bShift = true; nValue = (int)Keys.D5; break;
+                        case '^': bShift = true; nValue = (int)Keys.D6; break;
+                        case '&': bShift = true; nValue = (int)Keys.D7; break;
+                        case '*': bShift = true; nValue = (int)Keys.D8; break;
+                        case '(': bShift = true; nValue = (int)Keys.D9; break;
+                        case ')': bShift = true; nValue = (int)Keys.D0; break;
+
+                        case '`': bShift = false; nValue = (int)Keys.Oemtilde; break;
+                        case '-': bShift = false; nValue = (int)Keys.OemMinus; break;
+                        case '=': bShift = false; nValue = (int)Keys.Oemplus; break;
+                        case '[': bShift = false; nValue = (int)Keys.OemOpenBrackets; break;
+                        case ']': bShift = false; nValue = (int)Keys.OemCloseBrackets; break;
+                        case '\\': bShift = false; nValue = (int)Keys.OemPipe; break;
+                        case ';': bShift = false; nValue = (int)Keys.OemSemicolon; break;
+                        case '\'': bShift = false; nValue = (int)Keys.OemQuotes; break;
+                        case ',': bShift = false; nValue = (int)Keys.Oemcomma; break;
+                        case '.': bShift = false; nValue = (int)Keys.OemPeriod; break;
+                        case '/': bShift = false; nValue = (int)Keys.OemQuestion; break;
+
+                        case '1': bShift = false; nValue = (int)Keys.D1; break;
+                        case '2': bShift = false; nValue = (int)Keys.D2; break;
+                        case '3': bShift = false; nValue = (int)Keys.D3; break;
+                        case '4': bShift = false; nValue = (int)Keys.D4; break;
+                        case '5': bShift = false; nValue = (int)Keys.D5; break;
+                        case '6': bShift = false; nValue = (int)Keys.D6; break;
+                        case '7': bShift = false; nValue = (int)Keys.D7; break;
+                        case '8': bShift = false; nValue = (int)Keys.D8; break;
+                        case '9': bShift = false; nValue = (int)Keys.D9; break;
+                        case '0': bShift = false; nValue = (int)Keys.D0; break;
+
+                        case ' ': bShift = false; nValue = (int)Keys.Space; break;
+                        case '\x1b': bShift = false; nValue = (int)Keys.Escape; break;
+                        case '\b': bShift = false; nValue = (int)Keys.Back; break;
+                        case '\t': bShift = false; nValue = (int)Keys.Tab; break;
+                        case '\a': bShift = false; nValue = (int)Keys.LineFeed; break;
+                        case '\r': bShift = false; nValue = (int)Keys.Enter; break;
+
+                        default:
+                            bShift = false; nValue = 0; break;
+
+                    }
+
+                    if (nValue != 0)
+                    {
+                        // Caps Lock의 상태에 따른 대/소문자 처리
+                        if (bShift)
+                        {
+                            keybd_event((int)Keys.LShiftKey, 0x00, KEYEVENTF_KEYDOWN, 0);
+                            Thread.Sleep(30);
+                        }
+
+                        // Key 눌림 처리함.
+                        //int nValue = Convert.ToInt32(chValue);
+                        //int nValue = (int)Keys.Oemtilde;
+                        keybd_event((byte)nValue, 0x00, KEYEVENTF_KEYDOWN, 0);
+                        Thread.Sleep(30);
+                        keybd_event((byte)nValue, 0x00, KEYEVENTF_KEYUP, 0);
+                        Thread.Sleep(30);
+
+                        // Caps Lock 상태를 회복함.
+                        if (bShift)
+                        {
+                            keybd_event((int)Keys.LShiftKey, 0x00, KEYEVENTF_KEYUP, 0);
+                            Thread.Sleep(30);
+                        }
+                    }
+                }
+
+
             }
         }
+
+        //캐시 삭제
+        public void clearHistory()
+        {
+            deleteAllTab();
+            ie = null;
+
+            System.Diagnostics.Process.Start("rundll32.exe", "InetCpl.cpl,ClearMyTracksByProcess 4351").WaitForExit();
+            Console.WriteLine("history clear");
+            log.Debug("캐시 삭제 완료");
+        }
+
+        //모든 탭 제거
+        private void deleteAllTab()
+        {
+            SHDocVw.ShellWindows shellWindows = new SHDocVw.ShellWindows();
+            foreach (InternetExplorer iea in shellWindows)
+            {
+
+                iea.Quit();
+            }
+        }
+
+   
+        //ie 프로세스 생성
+        private void makeIeProcess(string url)
+        {
+            /*
+             * have to check resolution
+             * basic resolution : 800 x 600 
+             * */
+            url = checkUrl(macroString.Substring(macroString.IndexOf("=") + 1));
+            Console.WriteLine(url);
+            if (ie == null)
+            {
+                ie = new InternetExplorer();
+                webBrowser = (SHDocVw.WebBrowser)ie;
+                webBrowser.Visible = true;
+                ie.Left = 0;
+                ie.Top = 0;
+                ie.Height = int.Parse(browserXSizeTextbox.Text);
+                ie.Width = int.Parse(browserYSizeTextbox.Text);
+
+
+            }
+            //User-Agent: Mozilla / 5.0(Linux; U; Android 2.2) AppleWebKit / 533.1(KHTML, like Gecko) Version / 4.0 Mobile Safari/ 533.1"
+            // "User-Agent: Mozilla/7.0(Linux; Android 7.0.0; SGH-i907) AppleWebKit/664.76 (KHTML, like Gecko) Chrome/87.0.3131.15 Mobile Safari/664.76 (Windows NT 10.0; WOW64; Trident/7.0; Touch; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; Tablet PC 2.0; rv:11.0) like Gecko"
+
+            log.Debug("navigate2 start");
+            ie.Navigate2(url, null, null, null, null);
+
+            log.Debug("navigate2 complete");
+            ie.Wait();
+            prevUrl = url;
+            log.Debug("wait complete");
+
+        }
+
+        private string checkUrl(string macroString)
+        {
+
+            bool includeHttps = macroString.StartsWith("http");
+            if (includeHttps == false)
+            {
+                bool includeHttp = macroString.StartsWith("http");
+
+                return "http://" + macroString;
+            }
+            else
+            {
+                return macroString;
+            }
+        }
+
+        #region 마우스 좌표탐지
+        //실시간 좌표 감지 시작
+        private void mouseDetectStart(object sender, EventArgs e)
+        {
+            mouseDetectTimer = setTimer();
+            mouseDetectTimer.Elapsed += timer_Elapsed;
+            mouseDetectTimer.Start();
+        }
+        //실시간 좌표 감지 종료
+        private void mouseDetectStop(object sender, EventArgs e)
+        {
+            mouseDetectTimer.Stop();
+            mouseDetectTimer.Dispose();
+            mouseDetectTimer = null;
+        }
+        delegate void TimerEventFiredDelegate();
+        void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            BeginInvoke(new TimerEventFiredDelegate(Work));
+        }
+        private void Work()
+        {
+            xAbsLocLabel.Text = "X=" + Cursor.Position.X.ToString();
+            yAbsLocLabel.Text = "Y= " + Cursor.Position.Y.ToString();
+            //수행해야할 작업(UI Thread 핸들링 가능)
+        }
+        #endregion
+
+        #region ui변경 methods
+        //해상도 적용 버튼 이벤트
+        private void browserSizeButton_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("해상도 적용 완료 : " + browserXSizeTextbox.Text + " X " + browserYSizeTextbox.Text);
+        }
+
+        private void processStopButton_Click(object sender, EventArgs e)
+        {
+            currentMacroLabel.Text = "현재 진행 명령 : 작업을 중단 중입니다. 현재 명령까지 실행함.";
+
+            processStopButton.Enabled = false;
+
+            worker.CancelAsync();
+
+        }
+
+        private void processStartButton_Click(object sender, EventArgs e)
+        {
+            macroList = String.Empty;
+            macroList = macroListTextBox.Text;
+            List<string> splitMacroList = new List<string>(macroList.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries));
+            int macroListLength = splitMacroList.Count;
+
+            //작업 명령이 하나도 입력되지 않았을 때
+            if (macroListLength == 0)
+            {
+                MessageBox.Show("작업 명령이 작성되지 않았습니다..");
+                return;
+            }
+
+            log.Debug("\n\n\n");
+
+            processStartButton.Enabled = false;
+            progressBar1.Style = ProgressBarStyle.Marquee;
+            progressBar1.MarqueeAnimationSpeed = 50;
+
+            worker = new BackgroundWorker();
+            worker.DoWork += (obj, ev) => bw_DoWork(splitMacroList, macroListLength, ev);
+            worker.WorkerSupportsCancellation = true;
+            worker.RunWorkerCompleted += bw_RunWorkerCompleted;
+            worker.RunWorkerAsync();
+        }
+
+
+        private void macroListClearButton_Click(object sender, EventArgs e)
+        {
+            macroListTextBox.Clear();
+        }
+
+        //vmware같은곳에서는 사용할 수 없음. ip address 얻어옴.
+        private IPAddress LocalIPAddress()
+        {
+            if (!System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+            {
+                return null;
+            }
+            IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+            return host
+                .AddressList
+                .FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
+        }
+
+        //보고서 textbox에 쓸 함수 구현, runworkerCompleted에서 사용됨
+        private StringBuilder endAllMacro(ref Stopwatch sw)
+        {
+            StringBuilder successString = new StringBuilder();
+            /*
+             * 현재 IP : ipv4 string
+             * 작업한 시간: HH:MM:SS.mmmm
+             * 작업 완료 시간: 2019/12/12 12:24:19 AM/PM, macroString
+             * 작업완료.
+             */
+            successString.AppendLine("현재 IP: " + LocalIPAddress());
+            successString.AppendLine("작업한 시간: " + sw.Elapsed);
+            string cntTime = System.DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss tt, ");
+            successString.AppendLine("작업 완료 시간: " + cntTime);
+            successString.AppendLine("작업 완료");
+            return successString;
+        }
+
+        //현재 매크로가 시작
+        private void printCurrentMacro(string macroString, int num)
+        {
+            if (currentMacroLabel.InvokeRequired)
+            {
+                currentMacroLabel.BeginInvoke(new Action(() => { currentMacroLabel.Text = num + " , " + "현재 진행 명령 : " + macroString; }));
+                return;
+            }
+        }
+
+        //현재 매크로 완료
+        private void endCurrentMacro(string macroString, int num)
+        {
+            if (reportTextBox.InvokeRequired)
+            {
+                reportTextBox.BeginInvoke(new Action(() =>
+                {
+                    reportTextBox.Text += num + " , " + "작업완료 : " + macroString.Substring(macroString.IndexOf(".") + 1) + "\r\n";
+
+                    reportTextBox.SelectionStart = reportTextBox.TextLength;
+                    reportTextBox.ScrollToCaret();
+
+                    int pos = macroListTextBox.GetFirstCharIndexFromLine(macroListTextboxCursor);
+
+                    if (pos > -1)
+                    {
+                        macroListTextBox.Select(pos, 0);
+                        macroListTextBox.ScrollToCaret();
+                    }
+                    macroListTextboxCursor++;
+
+                }));
+                return;
+            }
+        }
+
+        //무한 반복문에서 경계문으로 사용
+        private void splitInfiniteLoop()
+        {
+            if (reportTextBox.InvokeRequired)
+            {
+                reportTextBox.BeginInvoke(new Action(() =>
+                {
+                    reportTextBox.Text += "-------------------------------------------"
++ Environment.NewLine;
+                    reportTextBox.SelectionStart = reportTextBox.TextLength;
+                    reportTextBox.ScrollToCaret();
+                    macroListTextboxCursor = 0;
+                }));
+            }
+        }
+
+        //매크로 추가 버튼
+        private void addMacroButton_Click(object sender, EventArgs e)
+        {
+            string macroString = String.Empty;
+            int selectedIndex = tabControl1.SelectedIndex;
+            switch (selectedIndex)
+            {
+                case 0:
+                    //버전
+                    break;
+                case 1:
+                    //url 이동
+                    macroString = "▶" + selectedIndex + ".이동=" + inputUrlTextbox.Text;
+                    break;
+                case 2:
+                    //검색기록삭제
+                    macroString = "▶" + selectedIndex + ".검색기록삭제=";
+                    break;
+                case 3:
+                    //검색어
+
+                    macroString = "▶" + selectedIndex + ".로그인명령=";
+                    break;
+                case 4:
+                    macroString = "▶" + selectedIndex + ".로그인버튼클릭=";
+                    break;
+                case 5:
+                    //체류시간 설정
+                    if (sleepStartTextBox.Text == "" || sleepEndTextBox.Text == "")
+                    {
+                        MessageBox.Show("체류 시간을 입력하세요.");
+                    }
+                    else
+                    {
+                        macroString = "▶" + selectedIndex + ".체류시간추가=" + sleepStartTextBox.Text + "~" + sleepEndTextBox.Text;
+                    }
+                    break;
+                case 6:
+                    if (mouseEventComboBox.SelectedItem == null)
+                    {
+                        MessageBox.Show("이벤트를 선택해주세요.");
+                    }
+                    else
+                    {
+                        //마우스이벤트=왼쪽/오른쪽 클릭:(100,300)
+                        if (xAbsLocTextBox.Text.Length == 0 || yAbsLocTextBox.Text.Length == 0)
+                        {
+                            MessageBox.Show("X좌표와 Y좌표를 입력해주세요.");
+                        }
+                        else
+                        {
+                            macroString = "▶" + selectedIndex + ".마우스이벤트=" + mouseEventComboBox.Text + ":(" +
+                                xAbsLocTextBox.Text + "," + yAbsLocTextBox.Text + ")";
+                        }
+                    }
+                    break;
+
+         
+
+
+            }
+            macroListTextBox.Text += macroString + "\r\n";
+        }
+
+        private void urlClearButton_Click(object sender, EventArgs e)
+        {
+            inputUrlTextbox.Clear();
+        }
+
+        #endregion
+
+     
     }
+
+    #region 로딩 완료 확장 메서드
+    // 페이지 로딩 완료까지 대기하는 확장 메서드
+    public static class SHDovVwEx
+    {
+        public static void Wait(this SHDocVw.InternetExplorer ie, int millisecond = 0)
+        {
+            int count = 0;
+            while (ie.Busy == true || ie.ReadyState != SHDocVw.tagREADYSTATE.READYSTATE_COMPLETE)
+            {
+                System.Threading.Thread.Sleep(100);
+                count++;
+                if (count == 300) return;
+            }
+
+        }
+    }
+    #endregion
 }

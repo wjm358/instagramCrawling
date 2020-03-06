@@ -8,3 +8,11 @@ C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\
 C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\instagramCrwaling.cs.csproj.CoreCompileInputs.cache
 C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\instagramCrwaling.cs.exe
 C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\instagramCrwaling.cs.pdb
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\Interop.SHDocVw.dll
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\instagramCrwaling.cs.csproj.ResolveComReference.cache
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\bin\Debug\HtmlAgilityPack.dll
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\bin\Debug\HtmlAgilityPack.pdb
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\bin\Debug\HtmlAgilityPack.xml
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Debug\instagramCrwaling.cs.csproj.CopyComplete
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\bin\Debug\log4net.dll
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\bin\Debug\log4net.xml
