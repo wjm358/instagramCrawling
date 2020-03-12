@@ -15,3 +15,4 @@ C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Releas
 C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Release\instagramCrwaling.cs.csproj.CopyComplete
 C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Release\instagramCrwaling.cs.exe
 C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Release\instagramCrwaling.cs.pdb
+C:\Users\wjm35\source\repos\instagramCrwaling.cs\instagramCrwaling.cs\obj\Release\instagramCrwaling.cs.csprojAssemblyReference.cache

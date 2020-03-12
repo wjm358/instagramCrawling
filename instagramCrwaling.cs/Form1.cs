@@ -411,7 +411,7 @@ namespace instagramCrwaling.cs
             
             string id = dataGridView1.SelectedRows[0].Cells[0].Value.ToString();
             string pw = dataGridView1.SelectedRows[0].Cells[1].Value.ToString();
-            
+            Thread.Sleep(3000);
             inputId(id);
             inputPassword(pw);
             
@@ -424,7 +424,57 @@ namespace instagramCrwaling.cs
                 {
                     Console.WriteLine("로그인");
                     div.click();
-                    return; 
+                    ie.Wait();
+                    Thread.Sleep(3000);
+                    Console.WriteLine("성고옹");
+
+                    mshtml.HTMLDocument dda = ie.Document;
+                    var alertps = dda.getElementsByTagName("p");
+                    foreach(IHTMLElement ap in alertps)
+                    {
+                        Console.WriteLine(ap.outerHTML + ", " + ap.id);
+                       
+                        if(ap.innerText.Contains("잘못된"))
+                        {
+                            Console.WriteLine("잘못된 맞대");
+                        }
+                    }
+                    var alertP = dda.getElementById("slfErrorAlert");
+               
+                    if(alertP ==null)
+                    {
+                        //로그인 성공
+                        Console.WriteLine("null");
+                        string initial_path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                        string filePath = initial_path + "//successLoginId.txt";
+                        FileStream fileStream = new FileStream(filePath, FileMode.Append, FileAccess.Write);
+
+                        string strData = " text success";
+                        StreamWriter streamWriter = new StreamWriter(fileStream, Encoding.UTF8);
+                        streamWriter.WriteLine(strData);
+                        streamWriter.Close();
+
+                        fileStream.Close();
+                        
+                    }
+                    else
+                    {
+                        Console.WriteLine("not null");
+
+                        string initial_path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                        string filePath = initial_path + "//성공한id목록.txt";
+                        FileStream fileStream = new FileStream(filePath, FileMode.Append, FileAccess.Write);
+
+                        string strData = " text fail";
+                        StreamWriter streamWriter = new StreamWriter(fileStream, Encoding.UTF8);
+                        streamWriter.WriteLine(strData);
+                        streamWriter.Close();
+
+                        fileStream.Close();
+                        //로그인 실패
+                        return; 
+
+                    }
                 }
             }
            
@@ -535,14 +585,20 @@ namespace instagramCrwaling.cs
             foreach(IHTMLElement input in inputs)
             {
                 string inputName = input.getAttribute("name");
-                if (inputName != null) Console.WriteLine(inputName);
+                    
+              //  if (inputName != null) Console.WriteLine("1" + inputName);
                 if(!string.IsNullOrEmpty(inputName) && inputName.Equals("username"))
                 {
                     ((IHTMLElement2)input).focus();
-                    Console.WriteLine("dd");
+
+                    //((IHTMLElement2)input).focus();
+                    //input.click();
+                    // Console.WriteLine("dd");
+                    Thread.Sleep(1000);
                     break;
                 }
             }
+            
             inputString(idString);
             Thread.Sleep(1000);
             Console.WriteLine("inputID complete");
@@ -557,6 +613,7 @@ namespace instagramCrwaling.cs
                 if (!string.IsNullOrEmpty(inputName) && inputName.Equals("password"))
                 {
                     ((IHTMLElement2)input).focus();
+                  //  ((IHTMLElement2)input).focus();
                     break;
                 }
             }
@@ -565,11 +622,14 @@ namespace instagramCrwaling.cs
 
         private void inputString(string inputString)
         {
+            Console.WriteLine(inputString);
             char[] idChars = inputString.ToCharArray();
+            SetForegroundWindow((IntPtr)ie.HWND);
             SetForegroundWindow((IntPtr)ie.HWND);
 
             foreach (char idChar in idChars)
             {
+                Console.WriteLine(idChar);
                 if (idChar >= 'a' && idChar <= 'z')
                 {
                     keybd_event((byte)(char.ToUpper(idChar)), 0, 0x00, 0);

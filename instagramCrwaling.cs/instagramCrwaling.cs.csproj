@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{6BEC545E-E548-4156-98C5-37DC7C01C2B8}</ProjectGuid>
-    <OutputType>WinExe</OutputType>
+    <OutputType>Exe</OutputType>
     <RootNamespace>instagramCrwaling.cs</RootNamespace>
     <AssemblyName>instagramCrwaling.cs</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
