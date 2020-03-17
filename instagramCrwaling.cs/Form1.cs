@@ -61,6 +61,13 @@ namespace instagramCrwaling.cs
         private const int MOUSEEVENTF_LEFTUP = 0x04;
         private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
         private const int MOUSEEVENTF_RIGHTUP = 0x10;
+
+         string[] chosungString = new string[] {"r","R","s","e","E","f","a","q","Q","t","T","d","w","W","c","z","x","v","g" };
+         string[] joongsungString = new string[] { "k","o","i","O","j","p","u","P","h","hk","ho","hl","y","n","nj","np","nl"
+             ,"b","m","ml","l"};
+         string[] jongsungString = new string[]{ " ","r", "R","rt","s","sw","sg","e","f","fr","fa","fq","ft","fx","fv","fg","a","q",
+         "qt","t","T","d","w","c","z","x","v","g"};
+
         #endregion
 
         #region 일반 변수 선언
@@ -164,12 +171,75 @@ namespace instagramCrwaling.cs
             log.Debug("changeIeTab 반환없이 End");
         }
 
+        //첫번째 _8-yf5가 좋아요, 두번째가 댓글달기.
+
+        private void likeButton()
+        {
+            mshtml.HTMLDocument document = ie.Document;
+            var svgs = document.getElementsByTagName("svg");
+            foreach(IHTMLElement svg in svgs)
+            {
+                string svgClassName = svg.className.Trim();
+
+                if(svgClassName !=null && svgClassName.Equals("_8-yf5"))
+                {
+                    svg.click();
+                    return;
+                }
+            }
+
+            
+        }
+
+        private void replyButton()
+        {
+            mshtml.HTMLDocument document = ie.Document;
+            var svgs = document.getElementsByTagName("svg");
+            int count = 0; 
+            foreach (IHTMLElement svg in svgs)
+            {
+                
+                string svgClassName = svg.className.Trim();
+               
+                if (svgClassName != null && svgClassName.Equals("_8-yf5"))
+                {
+                    if(count == 1)
+                    {
+                    svg.click();
+                    return;
+                    }
+                }
+                count++;
+            }
+        }
+
+        private void writeReply(string reply)
+        {
+
+        }
+        private void replyMethod()
+        {
+            mshtml.HTMLDocument document = ie.Document;
+            var textareas = document.getElementsByTagName("textarea");
+            foreach (IHTMLElement textarea in textareas)
+            {
+                string textareaClassName = textarea.className.Trim();
+                if(textareaClassName != null)
+                {
+                    Console.WriteLine(textareaClassName);
+                }
+                if (textareaClassName != null && textareaClassName.Equals("Ypffh"))
+                {
+                    textarea.click();
+                    return;
+                }
+            }
+        }
 
         public Form1()
         {
             InitializeComponent();
             deleteAllIeProcesses();
-
         }
 
         public int getRandomIndex(int elementsLength)
@@ -307,7 +377,9 @@ namespace instagramCrwaling.cs
                                         LeftOneClick(xpos, ypos);
                                     }
                                     break;
-                              
+                                case 7:
+                                    likeButton();
+                                    break;
                                 default:
                                     Console.WriteLine("매크로형식이 맞지 않음");
                                     break;
@@ -590,10 +662,7 @@ namespace instagramCrwaling.cs
                 if(!string.IsNullOrEmpty(inputName) && inputName.Equals("username"))
                 {
                     ((IHTMLElement2)input).focus();
-
-                    //((IHTMLElement2)input).focus();
-                    //input.click();
-                    // Console.WriteLine("dd");
+                    
                     Thread.Sleep(1000);
                     break;
                 }
@@ -630,7 +699,10 @@ namespace instagramCrwaling.cs
             foreach (char idChar in idChars)
             {
                 Console.WriteLine(idChar);
-                if (idChar >= 'a' && idChar <= 'z')
+                if(char.GetUnicodeCategory(idChar) == System.Globalization.UnicodeCategory.OtherLetter)
+                {
+
+                } else if (idChar >= 'a' && idChar <= 'z')
                 {
                     keybd_event((byte)(char.ToUpper(idChar)), 0, 0x00, 0);
                     keybd_event((byte)(char.ToUpper(idChar)), 0, 0x02, 0);
@@ -992,7 +1064,7 @@ namespace instagramCrwaling.cs
                     macroString = "▶" + selectedIndex + ".검색기록삭제=";
                     break;
                 case 3:
-                    //검색어
+                
 
                     macroString = "▶" + selectedIndex + ".로그인명령=";
                     break;
@@ -1029,7 +1101,9 @@ namespace instagramCrwaling.cs
                         }
                     }
                     break;
-
+                case 7:
+                    macroString = "▶" + selectedIndex + ".좋아요버튼클릭=";
+                    break;
          
 
 
@@ -1042,9 +1116,39 @@ namespace instagramCrwaling.cs
             inputUrlTextbox.Clear();
         }
 
+
         #endregion
 
-     
+        private void button1_Click(object sender, EventArgs e)
+        {
+            string str = "환";
+            char[] uchars = str.ToCharArray();
+            int cn = uchars[0] - 0xAC00;
+            int chosung = (int)(cn / (28 * 21));
+            int joongsung = (int)((cn % (28 * 21)) / 28);
+            int jongsung = (int)(cn % 28);
+
+            Console.WriteLine(chosungString[chosung]);
+            Console.WriteLine(joongsungString[joongsung]);
+            Console.WriteLine(jongsungString[jongsung]);
+
+            string hanguel = "ghks";
+            int nHangleKey = (int)Keys.HangulMode; // (int)Keys.HangulMode;  // (int)Keys.ProcessKey
+
+            textBox1.Focus();
+            Thread.Sleep(300);
+            keybd_event((byte)nHangleKey, 0x00, KEYEVENTF_KEYDOWN, 0);
+            Thread.Sleep(300);
+
+            keybd_event((byte)nHangleKey, 0x00, KEYEVENTF_KEYUP, 0);
+            Thread.Sleep(300);
+            keybd_event((byte)Keys.G, 0x00, KEYEVENTF_KEYDOWN, 0);
+            keybd_event((byte)Keys.G, 0x00, KEYEVENTF_KEYUP, 0);
+
+            keybd_event((byte)Keys.H, 0x00, KEYEVENTF_KEYDOWN, 0);
+            keybd_event((byte)Keys.H, 0x00, KEYEVENTF_KEYUP, 0);
+
+        }
     }
 
     #region 로딩 완료 확장 메서드

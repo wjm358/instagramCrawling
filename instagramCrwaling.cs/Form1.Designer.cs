@@ -66,6 +66,7 @@
             this.label10 = new System.Windows.Forms.Label();
             this.label9 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
+            this.tabPage6 = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.label11 = new System.Windows.Forms.Label();
             this.macroListClearButton = new System.Windows.Forms.Button();
@@ -82,6 +83,8 @@
             this.browserYSizeTextbox = new System.Windows.Forms.TextBox();
             this.browserSizeButton = new System.Windows.Forms.Button();
             this.label4 = new System.Windows.Forms.Label();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -177,6 +180,7 @@
             // groupBox2
             // 
             this.groupBox2.CausesValidation = false;
+            this.groupBox2.Controls.Add(this.button1);
             this.groupBox2.Controls.Add(this.addMacroButton);
             this.groupBox2.Controls.Add(this.tabControl1);
             this.groupBox2.Location = new System.Drawing.Point(365, 28);
@@ -208,6 +212,7 @@
             this.tabControl1.Controls.Add(this.tabPage5);
             this.tabControl1.Controls.Add(this.tabPage7);
             this.tabControl1.Controls.Add(this.tabPage8);
+            this.tabControl1.Controls.Add(this.tabPage6);
             this.tabControl1.Location = new System.Drawing.Point(11, 18);
             this.tabControl1.Margin = new System.Windows.Forms.Padding(2);
             this.tabControl1.Name = "tabControl1";
@@ -504,6 +509,15 @@
             this.label8.TabIndex = 0;
             this.label8.Text = "이벤트 선택 :";
             // 
+            // tabPage6
+            // 
+            this.tabPage6.Location = new System.Drawing.Point(4, 22);
+            this.tabPage6.Name = "tabPage6";
+            this.tabPage6.Size = new System.Drawing.Size(691, 84);
+            this.tabPage6.TabIndex = 8;
+            this.tabPage6.Text = "좋아요";
+            this.tabPage6.UseVisualStyleBackColor = true;
+            // 
             // groupBox3
             // 
             this.groupBox3.BackColor = System.Drawing.Color.LightSteelBlue;
@@ -682,11 +696,29 @@
             this.label4.TabIndex = 3;
             this.label4.Text = "작업시작전에 꼭 파일 등록해놓고 실행할 것\r\n\r\n";
             // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(807, 8);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(385, 21);
+            this.textBox1.TabIndex = 12;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(716, 18);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 1;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1205, 479);
+            this.Controls.Add(this.textBox1);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.browserYSizeTextbox);
@@ -779,6 +811,9 @@
         private System.Windows.Forms.TextBox browserYSizeTextbox;
         private System.Windows.Forms.Button browserSizeButton;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.TabPage tabPage6;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Button button1;
     }
 }
 
