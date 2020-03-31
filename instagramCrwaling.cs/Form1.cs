@@ -19,6 +19,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+[assembly: log4net.Config.XmlConfigurator(Watch = true)]
+
 namespace instagramCrwaling.cs
 {
     public partial class Form1 : Form
@@ -62,10 +64,10 @@ namespace instagramCrwaling.cs
         private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
         private const int MOUSEEVENTF_RIGHTUP = 0x10;
 
-         string[] chosungString = new string[] {"r","R","s","e","E","f","a","q","Q","t","T","d","w","W","c","z","x","v","g" };
-         string[] joongsungString = new string[] { "k","o","i","O","j","p","u","P","h","hk","ho","hl","y","n","nj","np","nl"
+        string[] chosungString = new string[] { "r", "R", "s", "e", "E", "f", "a", "q", "Q", "t", "T", "d", "w", "W", "c", "z", "x", "v", "g" };
+        string[] joongsungString = new string[] { "k","o","i","O","j","p","u","P","h","hk","ho","hl","y","n","nj","np","nl"
              ,"b","m","ml","l"};
-         string[] jongsungString = new string[]{ " ","r", "R","rt","s","sw","sg","e","f","fr","fa","fq","ft","fx","fv","fg","a","q",
+        string[] jongsungString = new string[]{ " ","r", "R","rt","s","sw","sg","e","f","fr","fa","fq","ft","fx","fv","fg","a","q",
          "qt","t","T","d","w","c","z","x","v","g"};
 
         #endregion
@@ -89,11 +91,11 @@ namespace instagramCrwaling.cs
         Microsoft.Win32.RegistryKey rk = null;
         System.Timers.Timer mouseDetectTimer = null; //좌표 감지에 쓰이는 타이머
         Random random = null;
-        Thread workerThread = null;
-        Thread aa = null;
         private ILog log = LogManager.GetLogger("Program");
         BackgroundWorker worker = null;
 
+        static string initial_path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+        string filePath = initial_path + "//성공한ID목록.txt";
         #endregion
 
         #region 변수 재활용
@@ -173,68 +175,65 @@ namespace instagramCrwaling.cs
 
         //첫번째 _8-yf5가 좋아요, 두번째가 댓글달기.
 
+        //좋아요 버튼 클릭
         private void likeButton()
         {
+            log.Debug("likeButton method start");
             mshtml.HTMLDocument document = ie.Document;
             var svgs = document.getElementsByTagName("svg");
-            foreach(IHTMLElement svg in svgs)
+            foreach (IHTMLElement svg in svgs)
             {
                 string svgClassName = svg.className.Trim();
 
-                if(svgClassName !=null && svgClassName.Equals("_8-yf5"))
+                if (svgClassName != null && svgClassName.Equals("_8-yf5"))
                 {
                     svg.click();
+                    log.Debug("likeButton method end");
                     return;
                 }
             }
 
-            
+
         }
 
+        //댓글 버튼 클릭
         private void replyButton()
         {
             mshtml.HTMLDocument document = ie.Document;
             var svgs = document.getElementsByTagName("svg");
-            int count = 0; 
+            int count = 0;
             foreach (IHTMLElement svg in svgs)
             {
-                
+
                 string svgClassName = svg.className.Trim();
-               
+
                 if (svgClassName != null && svgClassName.Equals("_8-yf5"))
                 {
-                    if(count == 1)
+                    if (count == 1)
                     {
-                    svg.click();
-                    return;
+                        svg.click();
+                        return;
                     }
                 }
                 count++;
             }
         }
 
-        private void writeReply(string reply)
+        //댓글 작성
+        private void writeReply(string fileName)
         {
+            Thread.Sleep(3000);
+            string[] allLines = File.ReadAllLines(@fileName);
+            int length = allLines.Length;
+            random = setRandomInstance();
+            int randomChoice = random.Next(0, length);
+            string line = allLines[randomChoice];
+            line.Trim();
+            inputString(line);
+
 
         }
-        private void replyMethod()
-        {
-            mshtml.HTMLDocument document = ie.Document;
-            var textareas = document.getElementsByTagName("textarea");
-            foreach (IHTMLElement textarea in textareas)
-            {
-                string textareaClassName = textarea.className.Trim();
-                if(textareaClassName != null)
-                {
-                    Console.WriteLine(textareaClassName);
-                }
-                if (textareaClassName != null && textareaClassName.Equals("Ypffh"))
-                {
-                    textarea.click();
-                    return;
-                }
-            }
-        }
+
 
         public Form1()
         {
@@ -258,9 +257,10 @@ namespace instagramCrwaling.cs
 
         void bw_DoWork(List<string> splitMacroList, int macroListLength, DoWorkEventArgs e)
         {
-          
+
             rk =
           Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings\5.0\User Agent", true);
+
             if (radioButton2.Checked == true)
             {
                 //"Mozilla/5.0 (Linux; Android 10.0.0; SGH-i907) AppleWebKit/664.76 (KHTML, like Gecko) Chrome/87.0.3131.15 Mobile Safari/664.76 
@@ -340,7 +340,7 @@ namespace instagramCrwaling.cs
                                     //로그인
                                     loginMethod();
                                     nextRowIndex++;
-                                   
+
                                     break;
 
                                 case 4:
@@ -378,7 +378,21 @@ namespace instagramCrwaling.cs
                                     }
                                     break;
                                 case 7:
+                                    //좋아요버튼클릭
                                     likeButton();
+                                    break;
+                                case 8:
+                                    //팔로우버튼클릭
+                                    findByKeyword("팔로우");
+                                    break;
+                                case 9:
+
+                                    string fileName = macroString.Substring(macroString.IndexOf("=") + 1).Trim();
+                                    Console.WriteLine(fileName);
+                                    replyButton();
+                                    writeReply(fileName);
+                                    findByKeyword("게시");
+                                    //메소드 들어와야함
                                     break;
                                 default:
                                     Console.WriteLine("매크로형식이 맞지 않음");
@@ -411,7 +425,7 @@ namespace instagramCrwaling.cs
                 ie = null;
                 deleteAllIeProcesses();
                 totalsw.Stop();
-  
+
             }
         }
 
@@ -441,115 +455,91 @@ namespace instagramCrwaling.cs
             ie = null;
             if (rk != null)
                 rk.SetValue(null, "");
-            
+
             //예외처리 필요?
 
 
         }
         #endregion
 
-        /*
-         * 
-         * ▶1.이동=instagram.com/wonjjong93
-▶6.체류시간추가=3~10
-▶4.키워드검색=로그인
-▶6.체류시간추가=3~10
-▶3로그인명령=
-▶6.체류시간추가=3~10
-
-         * */
-         public void loginButtonClick()
+        //로그인 버튼 클릭
+        public void loginButtonClick()
         {
             mshtml.HTMLDocument dd = ie.Document;
             var buttons = dd.getElementsByTagName("button");
-            foreach(IHTMLElement button in buttons )
+            foreach (IHTMLElement button in buttons)
             {
                 string buttonInnerHtml = button.innerText;
-                if (buttonInnerHtml != null) Console.WriteLine(buttonInnerHtml);
+
                 if (buttonInnerHtml != null && buttonInnerHtml.Equals("로그인"))
                 {
-                    Console.WriteLine("로그인");
                     button.click();
                     return;
                 }
             }
         }
+
+        //해당 ID와 PW로 로그인하기
         public void loginMethod()
         {
-       
+
             dataGridView1.ClearSelection();
-           
+
             dataGridView1.Rows[nextRowIndex].Selected = true;
-            
+
             string id = dataGridView1.SelectedRows[0].Cells[0].Value.ToString();
             string pw = dataGridView1.SelectedRows[0].Cells[1].Value.ToString();
-            Thread.Sleep(3000);
             inputId(id);
             inputPassword(pw);
-            
+
             mshtml.HTMLDocument dd = ie.Document;
             var divs = dd.getElementsByTagName("div");
-            foreach(IHTMLElement div in divs)
+            foreach (IHTMLElement div in divs)
             {
                 string divInnterHtml = div.innerText;
-                if(divInnterHtml!=null && divInnterHtml.Equals("로그인"))
+                if (divInnterHtml != null && divInnterHtml.Equals("로그인"))
                 {
-                    Console.WriteLine("로그인");
+                    Console.WriteLine("로그인 버튼 클릭");
                     div.click();
-                    ie.Wait();
-                    Thread.Sleep(3000);
-                    Console.WriteLine("성고옹");
+
+                    Thread.Sleep(5000);
 
                     mshtml.HTMLDocument dda = ie.Document;
-                    var alertps = dda.getElementsByTagName("p");
-                    foreach(IHTMLElement ap in alertps)
-                    {
-                        Console.WriteLine(ap.outerHTML + ", " + ap.id);
-                       
-                        if(ap.innerText.Contains("잘못된"))
-                        {
-                            Console.WriteLine("잘못된 맞대");
-                        }
-                    }
+
                     var alertP = dda.getElementById("slfErrorAlert");
-               
-                    if(alertP ==null)
+
+                    if (alertP == null)
                     {
                         //로그인 성공
-                        Console.WriteLine("null");
-                        string initial_path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                        string filePath = initial_path + "//successLoginId.txt";
+
                         FileStream fileStream = new FileStream(filePath, FileMode.Append, FileAccess.Write);
 
-                        string strData = " text success";
+                        string strData = id + " " + pw;
                         StreamWriter streamWriter = new StreamWriter(fileStream, Encoding.UTF8);
                         streamWriter.WriteLine(strData);
                         streamWriter.Close();
 
                         fileStream.Close();
-                        
-                    }
-                    else
-                    {
-                        Console.WriteLine("not null");
-
-                        string initial_path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                        string filePath = initial_path + "//성공한id목록.txt";
-                        FileStream fileStream = new FileStream(filePath, FileMode.Append, FileAccess.Write);
-
-                        string strData = " text fail";
-                        StreamWriter streamWriter = new StreamWriter(fileStream, Encoding.UTF8);
-                        streamWriter.WriteLine(strData);
-                        streamWriter.Close();
-
-                        fileStream.Close();
-                        //로그인 실패
-                        return; 
+                        return;
 
                     }
+                    //else
+                    //{
+                    //    FileStream fileStream = new FileStream(filePath, FileMode.Append, FileAccess.Write);
+
+                    //    string strData = id + " " + pw;
+                    //    StreamWriter streamWriter = new StreamWriter(fileStream, Encoding.UTF8);
+                    //    streamWriter.WriteLine(strData);
+                    //    streamWriter.Close();
+
+                    //    fileStream.Close();
+                    //    //로그인 실패
+                    //    return;
+
+                    //}
                 }
             }
-           
+
         }
 
         public void deleteAllIeProcesses()
@@ -561,7 +551,7 @@ namespace instagramCrwaling.cs
 
             }
         }
-      
+
         void findByKeyword(string keyword)
         {
             mshtml.HTMLDocument dd = ie.Document;
@@ -569,10 +559,9 @@ namespace instagramCrwaling.cs
             foreach (IHTMLElement button in buttons)
             {
                 string buttonInnerHtml = button.innerText;
-                if (buttonInnerHtml != null) Console.WriteLine(buttonInnerHtml);
-                if (buttonInnerHtml != null && buttonInnerHtml.Equals("로그인"))
+                if (buttonInnerHtml != null && buttonInnerHtml.Equals(keyword))
                 {
-                    Console.WriteLine("로그인");
+
                     button.click();
                     return;
                 }
@@ -581,6 +570,24 @@ namespace instagramCrwaling.cs
 
 
         #region 파일 관련 method
+        private void replyFileOpenButton_Click(object sender, EventArgs e)
+        {
+            string fileName = string.Empty;
+            OpenFileDialog fileDialog = new OpenFileDialog();
+            fileDialog.DefaultExt = "txt";
+            fileDialog.FileOk += checkFileName;
+            fileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            fileDialog.FilterIndex = 1; //파일다이얼로그가 열릴 때 파일 유형을 어떤걸 선택할것인지. 2이므로 *.txt로 설정되어 있음
+            fileDialog.RestoreDirectory = true;
+            //set initial screen as desktop
+            string initial_path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            fileDialog.InitialDirectory = initial_path;
+            if (fileDialog.ShowDialog() == DialogResult.OK)
+            {
+                fileName = fileDialog.FileName;
+                replyFileNameTextBox.Text = fileName;
+            }
+        }
 
         void checkFileName(object sender, System.ComponentModel.CancelEventArgs e)
         {
@@ -595,7 +602,7 @@ namespace instagramCrwaling.cs
 
         private void fileOpenButton_Click(object sender, EventArgs e)
         {
-            
+
             string fileName = string.Empty;
             OpenFileDialog fileDialog = new OpenFileDialog();
             fileDialog.DefaultExt = "txt";
@@ -616,7 +623,7 @@ namespace instagramCrwaling.cs
                 int length = allLine.Length;
                 int rowCount = 0;
                 Console.WriteLine(length);
-              
+
                 dataGridView1.RowCount = length;
 
                 foreach (string line in allLine)
@@ -636,38 +643,32 @@ namespace instagramCrwaling.cs
                 }
                 nextRowIndex = 0;
                 Console.WriteLine(dataGridView1.RowCount);
-            
-            //    Console.WriteLine(dataGridView1.CurrentRow.Cells[0].Value.ToString());
-           //     Console.WriteLine(dataGridView1.CurrentRow.Cells[1].Value.ToString());
-
-                // dataGridView1.ClearSelection();
-                // dataGridView1.Rows[2].Selected = true;
 
             }
 
         }
         #endregion
 
-
+        #region 키보드 입력 부분
         private void inputId(string idString)
         {
-          
+
             mshtml.HTMLDocument dd = ie.Document;
             var inputs = dd.getElementsByTagName("input");
-            foreach(IHTMLElement input in inputs)
+            foreach (IHTMLElement input in inputs)
             {
                 string inputName = input.getAttribute("name");
-                    
-              //  if (inputName != null) Console.WriteLine("1" + inputName);
-                if(!string.IsNullOrEmpty(inputName) && inputName.Equals("username"))
+
+                //  if (inputName != null) Console.WriteLine("1" + inputName);
+                if (!string.IsNullOrEmpty(inputName) && inputName.Equals("username"))
                 {
                     ((IHTMLElement2)input).focus();
-                    
+
                     Thread.Sleep(1000);
                     break;
                 }
             }
-            
+
             inputString(idString);
             Thread.Sleep(1000);
             Console.WriteLine("inputID complete");
@@ -682,11 +683,50 @@ namespace instagramCrwaling.cs
                 if (!string.IsNullOrEmpty(inputName) && inputName.Equals("password"))
                 {
                     ((IHTMLElement2)input).focus();
-                  //  ((IHTMLElement2)input).focus();
+                    Thread.Sleep(1000);
+                    //  ((IHTMLElement2)input).focus();
                     break;
                 }
             }
             inputString(pwString);
+            Thread.Sleep(1000);
+        }
+
+        private void inputHanguel(string inputString)
+        {
+            SetForegroundWindow((IntPtr)ie.HWND);
+            int nHangleKey = (int)Keys.HangulMode; // (int)Keys.HangulMode;  // (int)Keys.ProcessKey
+            keybd_event((byte)nHangleKey, 0x00, KEYEVENTF_KEYDOWN, 0);
+            Thread.Sleep(30);
+            keybd_event((byte)nHangleKey, 0x00, KEYEVENTF_KEYUP, 0);
+            Thread.Sleep(30);
+            char[] idChars = inputString.ToCharArray();
+
+            foreach (char idChar in idChars)
+            {
+                if (idChar >= 'a' && idChar <= 'z')
+                {
+                    keybd_event((byte)(char.ToUpper(idChar)), 0, 0x00, 0);
+                    keybd_event((byte)(char.ToUpper(idChar)), 0, 0x02, 0);
+
+                }
+                else if (idChar >= 'A' && idChar <= 'Z')
+                {
+                    keybd_event((int)Keys.LShiftKey, 0x00, 0x00, 0);
+
+                    keybd_event((byte)(char.ToUpper(idChar)), 0, 0x00, 0);
+                    keybd_event((byte)(char.ToUpper(idChar)), 0, 0x02, 0);
+
+                    keybd_event((int)Keys.LShiftKey, 0x00, 0x02, 0);
+
+                }
+            }
+
+            keybd_event((byte)nHangleKey, 0x00, KEYEVENTF_KEYDOWN, 0);
+            Thread.Sleep(30);
+            keybd_event((byte)nHangleKey, 0x00, KEYEVENTF_KEYUP, 0);
+            Thread.Sleep(30);
+
         }
 
         private void inputString(string inputString)
@@ -694,15 +734,19 @@ namespace instagramCrwaling.cs
             Console.WriteLine(inputString);
             char[] idChars = inputString.ToCharArray();
             SetForegroundWindow((IntPtr)ie.HWND);
-            SetForegroundWindow((IntPtr)ie.HWND);
 
             foreach (char idChar in idChars)
             {
                 Console.WriteLine(idChar);
-                if(char.GetUnicodeCategory(idChar) == System.Globalization.UnicodeCategory.OtherLetter)
-                {
+                if (char.GetUnicodeCategory(idChar) == System.Globalization.UnicodeCategory.OtherLetter)
+                {                    //한글인경우
+                    string hanguelString = makeHanguelString(idChar.ToString());
+                    Console.WriteLine("한글 : " + idChar.ToString() + "  -> 알파벳 : " + hanguelString);
+                    inputHanguel(hanguelString);
+                    continue;
 
-                } else if (idChar >= 'a' && idChar <= 'z')
+                }
+                else if (idChar >= 'a' && idChar <= 'z')
                 {
                     keybd_event((byte)(char.ToUpper(idChar)), 0, 0x00, 0);
                     keybd_event((byte)(char.ToUpper(idChar)), 0, 0x02, 0);
@@ -811,6 +855,55 @@ namespace instagramCrwaling.cs
             }
         }
 
+        //string[] chosungString = new string[] { "r", "R", "s", "e", "E", "f", "a", "q", "Q", "t", "T", "d", "w", "W", "c", "z", "x", "v", "g" };
+
+        private string makeHanguelString(string hanguel)
+        {
+
+            char[] uchars = hanguel.ToCharArray();
+            int cn = uchars[0] - 0xAC00;
+            int chosung = (int)(cn / (28 * 21));
+            Console.WriteLine((int)uchars[0] + ", " + chosung);
+            int joongsung = (int)((cn % (28 * 21)) / 28);
+            int jongsung = (int)(cn % 28);
+
+            string hanguelString = string.Empty;
+
+            if (cn < 0)
+            {
+                //초성만 존재
+                switch (uchars[0])
+                {
+                    case 'ㄱ': hanguelString = "r"; break;
+                    case 'ㄲ': hanguelString = "R"; break;
+                    case 'ㄴ': hanguelString = "s"; break;
+                    case 'ㄷ': hanguelString = "e"; break;
+                    case 'ㄸ': hanguelString = "E"; break;
+                    case 'ㄹ': hanguelString = "f"; break;
+                    case 'ㅁ': hanguelString = "a"; break;
+                    case 'ㅂ': hanguelString = "q"; break;
+                    case 'ㅃ': hanguelString = "Q"; break;
+                    case 'ㅅ': hanguelString = "t"; break;
+                    case 'ㅆ': hanguelString = "T"; break;
+                    case 'ㅇ': hanguelString = "d"; break;
+                    case 'ㅈ': hanguelString = "w"; break;
+                    case 'ㅉ': hanguelString = "W"; break;
+                    case 'ㅊ': hanguelString = "c"; break;
+                    case 'ㅋ': hanguelString = "z"; break;
+                    case 'ㅌ': hanguelString = "x"; break;
+                    case 'ㅍ': hanguelString = "v"; break;
+                    case 'ㅎ': hanguelString = "g"; break;
+
+                }
+            }
+            else
+                hanguelString = chosungString[chosung] + joongsungString[joongsung] + jongsungString[jongsung];
+
+            return hanguelString;
+
+        }
+        #endregion
+
         //캐시 삭제
         public void clearHistory()
         {
@@ -833,7 +926,7 @@ namespace instagramCrwaling.cs
             }
         }
 
-   
+
         //ie 프로세스 생성
         private void makeIeProcess(string url)
         {
@@ -1064,8 +1157,6 @@ namespace instagramCrwaling.cs
                     macroString = "▶" + selectedIndex + ".검색기록삭제=";
                     break;
                 case 3:
-                
-
                     macroString = "▶" + selectedIndex + ".로그인명령=";
                     break;
                 case 4:
@@ -1104,7 +1195,19 @@ namespace instagramCrwaling.cs
                 case 7:
                     macroString = "▶" + selectedIndex + ".좋아요버튼클릭=";
                     break;
-         
+                case 8:
+                    macroString = "▶" + selectedIndex + ".팔로우버튼클릭=";
+                    break;
+                case 9:
+                    if (replyFileNameTextBox.Text == "")
+                    {
+                        MessageBox.Show("파일을 선택해야 합니다.");
+                    }
+                    else
+                    {
+                        macroString = "▶" + selectedIndex + ".댓글 게시하기=" + replyFileNameTextBox.Text;
+                    }
+                    break;
 
 
             }
@@ -1119,36 +1222,42 @@ namespace instagramCrwaling.cs
 
         #endregion
 
+
         private void button1_Click(object sender, EventArgs e)
         {
-            string str = "환";
-            char[] uchars = str.ToCharArray();
-            int cn = uchars[0] - 0xAC00;
-            int chosung = (int)(cn / (28 * 21));
-            int joongsung = (int)((cn % (28 * 21)) / 28);
-            int jongsung = (int)(cn % 28);
-
-            Console.WriteLine(chosungString[chosung]);
-            Console.WriteLine(joongsungString[joongsung]);
-            Console.WriteLine(jongsungString[jongsung]);
-
-            string hanguel = "ghks";
-            int nHangleKey = (int)Keys.HangulMode; // (int)Keys.HangulMode;  // (int)Keys.ProcessKey
-
             textBox1.Focus();
-            Thread.Sleep(300);
-            keybd_event((byte)nHangleKey, 0x00, KEYEVENTF_KEYDOWN, 0);
-            Thread.Sleep(300);
+            //makeHanguelString("ㅎ");
+            inputString("빨로우ㅎㅁㅂㅈㄷㄱ");
+            //string str = "환";
+            //char[] uchars = str.ToCharArray();
+            //int cn = uchars[0] - 0xAC00;
+            //int chosung = (int)(cn / (28 * 21));
+            //int joongsung = (int)((cn % (28 * 21)) / 28);
+            //int jongsung = (int)(cn % 28);
 
-            keybd_event((byte)nHangleKey, 0x00, KEYEVENTF_KEYUP, 0);
-            Thread.Sleep(300);
-            keybd_event((byte)Keys.G, 0x00, KEYEVENTF_KEYDOWN, 0);
-            keybd_event((byte)Keys.G, 0x00, KEYEVENTF_KEYUP, 0);
+            //Console.WriteLine(chosungString[chosung]);
+            //Console.WriteLine(joongsungString[joongsung]);
+            //Console.WriteLine(jongsungString[jongsung]);
 
-            keybd_event((byte)Keys.H, 0x00, KEYEVENTF_KEYDOWN, 0);
-            keybd_event((byte)Keys.H, 0x00, KEYEVENTF_KEYUP, 0);
+            //string hanguel = "ghks";
+            //int nHangleKey = (int)Keys.HangulMode; // (int)Keys.HangulMode;  // (int)Keys.ProcessKey
+
+            //textBox1.Focus();
+            //Thread.Sleep(300);
+            //keybd_event((byte)nHangleKey, 0x00, KEYEVENTF_KEYDOWN, 0);
+            //Thread.Sleep(300);
+
+            //keybd_event((byte)nHangleKey, 0x00, KEYEVENTF_KEYUP, 0);
+            //Thread.Sleep(300);
+            //keybd_event((byte)Keys.G, 0x00, KEYEVENTF_KEYDOWN, 0);
+            //keybd_event((byte)Keys.G, 0x00, KEYEVENTF_KEYUP, 0);
+
+            //keybd_event((byte)Keys.H, 0x00, KEYEVENTF_KEYDOWN, 0);
+            //keybd_event((byte)Keys.H, 0x00, KEYEVENTF_KEYUP, 0);
 
         }
+
+
     }
 
     #region 로딩 완료 확장 메서드
@@ -1158,7 +1267,8 @@ namespace instagramCrwaling.cs
         public static void Wait(this SHDocVw.InternetExplorer ie, int millisecond = 0)
         {
             int count = 0;
-            while (ie.Busy == true || ie.ReadyState != SHDocVw.tagREADYSTATE.READYSTATE_COMPLETE)
+            while (ie.Busy == true)
+            //while (ie.Busy == true || ie.ReadyState != SHDocVw.tagREADYSTATE.READYSTATE_COMPLETE)
             {
                 System.Threading.Thread.Sleep(100);
                 count++;

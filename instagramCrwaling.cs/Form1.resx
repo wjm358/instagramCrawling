@@ -123,4 +123,23 @@
   <metadata name="Column2.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
     <value>True</value>
   </metadata>
+  <metadata name="Column1.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="Column2.UserAddedColumn" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="macroListTextBox.Text" xml:space="preserve">
+    <value>▶1.이동=https://www.instagram.com/jobdrives/
+▶5.체류시간추가=3~10
+▶4.로그인버튼클릭=
+▶5.체류시간추가=3~10
+▶3.로그인명령=
+▶5.체류시간추가=3~10
+▶6.마우스이벤트=왼쪽버튼 클릭:(371,204)
+▶5.체류시간추가=3~10
+▶7.좋아요버튼클릭=
+▶8.팔로우버튼클릭=
+▶9.댓글 게시하기=C:\Users\wjm35\OneDrive\바탕 화면\댓글.txt</value>
+  </data>
 </root>
